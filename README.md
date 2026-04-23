@@ -30,6 +30,13 @@ This tool monitors congressional trade disclosures using Financial Modeling Prep
 - `REQUEST_TIMEOUT_SECONDS`: HTTP timeout
 - `MAX_RETRIES`: Max retries for failed requests
 
+For GitHub Actions, do not commit your `.env` file. Instead, add repository secrets in GitHub:
+
+- `FMP_API_KEY`
+- `DISCORD_WEBHOOK_URL`
+
+These secrets are encrypted and only available during the workflow run.
+
 ### Watchlist
 
 Edit `config/watchlist.json` with your symbols:

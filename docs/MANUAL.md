@@ -51,6 +51,14 @@ Edit the `.env` file with the following values:
 - `REQUEST_TIMEOUT_SECONDS`: 20 (default)
 - `MAX_RETRIES`: 3 (default)
 
+#### GitHub Actions Secrets
+If running on GitHub, do not store secrets in source control. Instead, add the following repository secrets in GitHub under Settings > Secrets and variables > Actions:
+
+- `FMP_API_KEY`
+- `DISCORD_WEBHOOK_URL`
+
+The workflow will create a local `.env` from these secrets during the run.
+
 ### Watchlist
 Edit `config/watchlist.json` to add stock symbols:
 
