@@ -1,2 +1,86 @@
-# tippee
-"tippee" (recipient of a tip)
+# Congressional Trade Watcher
+
+A small, reliable system that watches for newly published U.S. congressional trade disclosures involving a user-supplied watchlist of stock symbols and sends alerts once per newly detected disclosure.
+
+## Overview
+
+This tool monitors congressional trade disclosures using Financial Modeling Prep's free API endpoints. It fetches Senate and House trade data daily, normalizes the records, deduplicates based on fingerprints, and sends Discord alerts for new disclosures.
+
+**Important Notes:**
+- Alerts are delayed by nature: Congressional disclosures are filed after trades under the STOCK Act.
+- This is informational monitoring, not trading advice.
+- Upstream data is updated daily by FMP.
+
+## Setup
+
+1. Clone the repository.
+2. Install dependencies: `pip install -r requirements.txt`
+3. Copy `.env.example` to `.env` and fill in your values.
+4. Add symbols to `config/watchlist.json` (e.g., `["NVDA", "PLTR"]`).
+5. Run backfill: `python -m src.main backfill --days 30`
+6. Schedule daily runs or run manually.
+
+## Configuration
+
+### Environment Variables (.env)
+
+- `FMP_API_KEY`: Your Financial Modeling Prep API key (get from https://financialmodelingprep.com/)
+- `DISCORD_WEBHOOK_URL`: Discord webhook URL for alerts
+- `LOG_LEVEL`: Logging level (INFO, DEBUG, etc.)
+- `REQUEST_TIMEOUT_SECONDS`: HTTP timeout
+- `MAX_RETRIES`: Max retries for failed requests
+
+### Watchlist
+
+Edit `config/watchlist.json` with your symbols:
+
+```json
+["NVDA", "TSM", "PLTR"]
+```
+
+Symbols are normalized to uppercase, duplicates removed.
+
+## Usage
+
+### Daily Scan
+`python -m src.main run`
+
+Fetches data, checks for new disclosures, sends alerts.
+
+### Test Alert
+`python -m src.main test-alert`
+
+Sends a sample alert to verify Discord setup.
+
+### Backfill
+`python -m src.main backfill --days 30`
+
+Populates seen hashes without sending alerts. Run before first production use.
+
+## Scheduling
+
+Use cron for daily runs. Example (9 AM daily):
+
+```
+0 9 * * * cd /path/to/congress-trade-watcher && python -m src.main run
+```
+
+See `src/scheduler_notes.md` for details.
+
+## Data Storage
+
+- `data/seen_hashes.json`: Fingerprints of seen records
+- `data/last_run.json`: Last run metadata
+- `logs/app.log`: Application logs
+
+## Troubleshooting
+
+- Check logs in `logs/app.log`
+- Ensure FMP API key is valid
+- Verify Discord webhook URL
+- If no alerts, check watchlist and run backfill
+
+## Dependencies
+
+- httpx: For HTTP requests
+- Standard library: json, hashlib, logging, etc.
