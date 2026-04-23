@@ -95,7 +95,11 @@ DISCORD_WEBHOOK_URL=your_discord_webhook
 LOG_LEVEL=INFO
 REQUEST_TIMEOUT_SECONDS=20
 MAX_RETRIES=3
+SEND_CONFIRMATION_ALERT=false
+CONFIRMATION_MESSAGE=Congressional trade watcher run complete. Fetched {total_fetched} record(s). Detected {new_records} new disclosure(s).
 ```
+
+By default, the watcher only sends alerts when it detects new disclosures. To receive a heartbeat message even when no new disclosures are found, set `SEND_CONFIRMATION_ALERT=true`.
 
 ## Alternative Installation Methods
 

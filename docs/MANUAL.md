@@ -50,6 +50,8 @@ Edit the `.env` file with the following values:
 - `LOG_LEVEL`: INFO (default), DEBUG for verbose logging
 - `REQUEST_TIMEOUT_SECONDS`: 20 (default)
 - `MAX_RETRIES`: 3 (default)
+- `SEND_CONFIRMATION_ALERT`: false (default). Set to true if you want a heartbeat message when no new records are found.
+- `CONFIRMATION_MESSAGE`: Optional message template used when heartbeat messages are enabled.
 
 #### GitHub Actions Secrets
 If running on GitHub, do not store secrets in source control. Instead, add the following repository secrets in GitHub under Settings > Secrets and variables > Actions:
@@ -140,8 +142,9 @@ Set up daily runs with cron:
 # Edit crontab
 crontab -e
 
-# Add line for 9 AM daily run
-0 9 * * * cd /path/to/tippee && python -m src.main run
+# Add lines for weekday 9:27 AM Eastern (3 minutes before market open)
+CRON_TZ=America/New_York
+27 9 * * 1-5 cd /path/to/tippee && python -m src.main run
 ```
 
 Replace `/path/to/tippee` with your actual path.
