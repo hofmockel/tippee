@@ -7,12 +7,12 @@ This system is designed to run once daily. It requires no always-on process or s
 The repository includes `.github/workflows/main.yml` for automated daily runs on GitHub.
 
 - Workflow trigger: `schedule`
-- Current cron: `17 13 * * *` (UTC)
+- Current cron: `27 13 * * 1-5` (UTC weekdays)
 - Local time equivalent:
-  - **Pacific Daylight Time (PDT): 6:17 AM**
-  - **Pacific Standard Time (PST): 5:17 AM**
+  - **Eastern Daylight Time (EDT): 9:27 AM**
+  - **Eastern Standard Time (EST): 8:27 AM**
 
-Why `:17` instead of `:00`? GitHub warns that scheduled workflows can be delayed or occasionally dropped during periods of high load, especially at the top of the hour.
+Why `:27` instead of `:00`? GitHub warns that scheduled workflows can be delayed or occasionally dropped during periods of high load, especially at the top of the hour.
 
 If a schedule appears not to run:
 - Confirm the workflow file exists on the **default branch**.
@@ -22,10 +22,11 @@ If a schedule appears not to run:
 
 ## Cron Setup
 
-To run the daily scan at 9 AM every day:
+To run the daily scan 3 minutes before U.S. market open (9:27 AM Eastern on weekdays):
 
 ```bash
-0 9 * * * cd /path/to/tippee && python -m src.main run
+CRON_TZ=America/New_York
+27 9 * * 1-5 cd /path/to/tippee && python -m src.main run
 ```
 
 Replace `/path/to/tippee` with your actual repository path.

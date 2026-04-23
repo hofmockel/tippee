@@ -29,6 +29,8 @@ This tool monitors congressional trade disclosures using Financial Modeling Prep
 - `LOG_LEVEL`: Logging level (INFO, DEBUG, etc.)
 - `REQUEST_TIMEOUT_SECONDS`: HTTP timeout
 - `MAX_RETRIES`: Max retries for failed requests
+- `SEND_CONFIRMATION_ALERT`: `false` by default; set to `true` to send a no-new-records heartbeat message
+- `CONFIRMATION_MESSAGE`: Optional template for heartbeat messages (`{total_fetched}` and `{new_records}` placeholders supported)
 
 For GitHub Actions, do not commit your `.env` file. Instead, add repository secrets in GitHub:
 
@@ -71,10 +73,11 @@ Populates seen hashes without sending alerts. Run before first production use.
 
 ## Scheduling
 
-Use cron for daily runs. Example (9 AM daily):
+Use cron for weekday runs 3 minutes before U.S. market open (9:27 AM Eastern):
 
 ```
-0 9 * * * cd /path/to/congress-trade-watcher && python -m src.main run
+CRON_TZ=America/New_York
+27 9 * * 1-5 cd /path/to/congress-trade-watcher && python -m src.main run
 ```
 
 See `src/scheduler_notes.md` for details.
@@ -83,10 +86,12 @@ See `src/scheduler_notes.md` for details.
 
 If you run this project on GitHub Actions, the included workflow uses:
 
-- `on.schedule: '17 13 * * *'` (UTC daily)
+- `on.schedule: '27 13 * * 1-5'` (UTC weekdays)
 - `workflow_dispatch` for manual runs
 
 This offset from minute `00` is intentional to reduce the chance of missed schedule starts during high-load top-of-hour windows.
+
+Note: GitHub Actions cron is UTC-only, so this maps to 9:27 AM ET during daylight saving time and 8:27 AM ET during standard time.
 
 ## Data Storage
 

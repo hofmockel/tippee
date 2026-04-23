@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Moved GitHub Actions scheduled trigger from `0 13 * * *` to `17 13 * * *` to avoid top-of-hour scheduling contention.
-- Documented GitHub Actions scheduling behavior and common reasons for missed scheduled runs.
+- Defaulted `SEND_CONFIRMATION_ALERT` to `false`, so runs only send alerts when there is a new disclosure to report.
+- Added documentation for toggling heartbeat/confirmation behavior with `SEND_CONFIRMATION_ALERT` and `CONFIRMATION_MESSAGE`.
+- Updated local cron examples to run at 9:27 AM America/New_York on weekdays (3 minutes before U.S. market open).
+- Updated GitHub Actions schedule to `27 13 * * 1-5` (UTC weekdays).
+
 
 ## [1.0.1] - 2026-04-23
 

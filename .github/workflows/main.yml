@@ -2,11 +2,11 @@ name: Daily Congressional Trade Watch
 
 on:
   schedule:
-    # Runs daily at 13:17 UTC.
-    # (6:17 AM Pacific during daylight time, 5:17 AM Pacific during standard time.)
+    # Runs on weekdays at 13:27 UTC.
+    # (9:27 AM Eastern during daylight time, 8:27 AM Eastern during standard time.)
     # GitHub Actions cron is UTC and can be delayed/dropped around minute 0 under heavy load,
     # so we avoid top-of-hour scheduling.
-    - cron: '17 13 * * *'
+    - cron: '27 13 * * 1-5'
   workflow_dispatch:
 
 jobs:
@@ -34,6 +34,7 @@ jobs:
           LOG_LEVEL=INFO
           REQUEST_TIMEOUT_SECONDS=20
           MAX_RETRIES=3
+          SEND_CONFIRMATION_ALERT=false
           ENVEOF
 
       - name: Run daily scan
