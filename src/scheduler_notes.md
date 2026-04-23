@@ -2,6 +2,24 @@
 
 This system is designed to run once daily. It requires no always-on process or server.
 
+## GitHub Actions Schedule (Recommended)
+
+The repository includes `.github/workflows/main.yml` for automated daily runs on GitHub.
+
+- Workflow trigger: `schedule`
+- Current cron: `17 13 * * *` (UTC)
+- Local time equivalent:
+  - **Pacific Daylight Time (PDT): 6:17 AM**
+  - **Pacific Standard Time (PST): 5:17 AM**
+
+Why `:17` instead of `:00`? GitHub warns that scheduled workflows can be delayed or occasionally dropped during periods of high load, especially at the top of the hour.
+
+If a schedule appears not to run:
+- Confirm the workflow file exists on the **default branch**.
+- Confirm Actions are enabled for the repository.
+- Confirm the repository has had recent activity (public repos can have schedules auto-disabled after long inactivity).
+- Use `workflow_dispatch` to run once manually and verify secrets/config.
+
 ## Cron Setup
 
 To run the daily scan at 9 AM every day:

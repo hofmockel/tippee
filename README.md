@@ -79,6 +79,15 @@ Use cron for daily runs. Example (9 AM daily):
 
 See `src/scheduler_notes.md` for details.
 
+### GitHub Actions Scheduled Runs
+
+If you run this project on GitHub Actions, the included workflow uses:
+
+- `on.schedule: '17 13 * * *'` (UTC daily)
+- `workflow_dispatch` for manual runs
+
+This offset from minute `00` is intentional to reduce the chance of missed schedule starts during high-load top-of-hour windows.
+
 ## Data Storage
 
 - `data/seen_hashes.json`: Fingerprints of seen records

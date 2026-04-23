@@ -2,8 +2,11 @@ name: Daily Congressional Trade Watch
 
 on:
   schedule:
-    # Runs at 6:00 AM Pacific Time (13:00 UTC) every day
-    - cron: '0 13 * * *'
+    # Runs daily at 13:17 UTC.
+    # (6:17 AM Pacific during daylight time, 5:17 AM Pacific during standard time.)
+    # GitHub Actions cron is UTC and can be delayed/dropped around minute 0 under heavy load,
+    # so we avoid top-of-hour scheduling.
+    - cron: '17 13 * * *'
   workflow_dispatch:
 
 jobs:
