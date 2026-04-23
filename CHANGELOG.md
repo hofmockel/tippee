@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Moved GitHub Actions scheduled trigger from `0 13 * * *` to `17 13 * * *` to avoid top-of-hour scheduling contention.
+- Documented GitHub Actions scheduling behavior and common reasons for missed scheduled runs.
+
 ## [1.0.1] - 2026-04-23
 
 ### Added
