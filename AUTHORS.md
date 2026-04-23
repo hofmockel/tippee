@@ -2,8 +2,8 @@
 
 The following people have contributed to the Congressional Trade Watcher project.
 
-## Maintainers
-- [hofmockel](https://github.com/hofmockel) - Project creator and maintainer
+## Primary Author
+- [hofmockel](https://github.com/hofmockel) - Primary author and project maintainer
 
 ## Contributors
 Community contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
