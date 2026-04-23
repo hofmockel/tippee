@@ -36,3 +36,27 @@ def alert_new_record(record: NormalizedTradeRecord, discord_url: str) -> None:
     send_console_alert(record)
     if discord_url:
         send_discord_alert(record, discord_url)
+
+
+def send_run_confirmation(
+    total_fetched: int,
+    new_records: int,
+    confirmation_message_template: str,
+    webhook_url: str
+) -> None:
+    """Send a completion/heartbeat alert when a run has no new records."""
+    message = confirmation_message_template.format(
+        total_fetched=total_fetched,
+        new_records=new_records,
+    )
+    logger.info(message)
+    if not webhook_url:
+        return
+
+    payload = {"content": message}
+    try:
+        response = httpx.post(webhook_url, json=payload, timeout=10)
+        response.raise_for_status()
+        logger.info("Run confirmation alert sent")
+    except Exception as e:
+        logger.error(f"Failed to send run confirmation alert: {e}")
