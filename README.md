@@ -32,8 +32,13 @@ This tool monitors congressional trade disclosures using Financial Modeling Prep
 
 For GitHub Actions, do not commit your `.env` file. Instead, add repository secrets in GitHub:
 
-- `FMP_API_KEY`
-- `DISCORD_WEBHOOK_URL`
+1. Go to your repository on GitHub.
+2. Click `Settings`.
+3. Select `Secrets and variables` > `Actions`.
+4. Click `New repository secret`.
+5. Add the secret name `FMP_API_KEY` and paste its value.
+6. Add the secret name `DISCORD_WEBHOOK_URL` and paste its value.
+7. Save each secret.
 
 These secrets are encrypted and only available during the workflow run.
 
