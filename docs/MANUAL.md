@@ -26,6 +26,10 @@ This manual provides detailed instructions for setting up and using the Congress
    ```bash
    pip install -r requirements.txt
    ```
+   
+   This installs:
+   - **httpx**: HTTP client for API requests
+   - **python-dotenv**: Loads environment variables from .env file
 
 4. Copy environment file:
    ```bash
@@ -33,13 +37,15 @@ This manual provides detailed instructions for setting up and using the Congress
    ```
 
 5. Edit `.env` with your API keys (see Configuration section).
+   
+   The application automatically loads environment variables from the `.env` file using python-dotenv.
 
 ## Configuration
 
 ### Environment Variables
-Edit the `.env` file with the following:
+Edit the `.env` file with the following values:
 
-- `FMP_API_KEY`: Get from https://financialmodelingprep.com/developer/docs
+- `FMP_API_KEY`: Get from https://financialmodelingprep.com/developer/docs (free plan available)
 - `DISCORD_WEBHOOK_URL`: Create a webhook in your Discord server settings
 - `LOG_LEVEL`: INFO (default), DEBUG for verbose logging
 - `REQUEST_TIMEOUT_SECONDS`: 20 (default)

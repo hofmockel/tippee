@@ -41,6 +41,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+This installs:
+- **httpx** - Modern HTTP client library for API requests
+- **python-dotenv** - Environment variable management from .env files
+
+For details on all dependencies, see [REQUIREMENTS.md](REQUIREMENTS.md).
+
 ### 4. Configure Environment
 ```bash
 # Copy example environment file

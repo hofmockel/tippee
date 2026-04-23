@@ -25,6 +25,7 @@ Python 3.11+ for:
 ## Dependencies
 Minimal dependencies:
 - httpx for HTTP requests (async-capable, modern)
+- python-dotenv for environment variable management
 - No pydantic (kept simple with dicts and TypedDict)
 - No pandas or heavy libs
 

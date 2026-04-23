@@ -82,11 +82,22 @@ See `src/scheduler_notes.md` for details.
 
 ## Dependencies
 
-- httpx: For HTTP requests
-- Standard library: json, hashlib, logging, etc.
+- **httpx**: Modern HTTP client for API requests
+- **python-dotenv**: Environment variable management from .env files
+- **Standard library**: json, hashlib, logging, pathlib, datetime, argparse
+
+For full details, see [REQUIREMENTS.md](REQUIREMENTS.md).
 
 ## Documentation
 
+Full documentation is organized as follows:
+
+- [REQUIREMENTS.md](REQUIREMENTS.md): Dependencies and installation details
+- [INSTALL.md](INSTALL.md): Step-by-step installation guide
 - [User Manual](docs/MANUAL.md): Detailed setup and usage instructions
 - [Architectural Decisions](docs/DECISIONS.md): Key design choices and rationale
 - [Future Plans](docs/PLANS.md): Roadmap and planned features
+- [CONTRIBUTING.md](CONTRIBUTING.md): Guidelines for contributors
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): Community standards
+- [CHANGELOG.md](CHANGELOG.md): Project version history
+- [AUTHORS.md](AUTHORS.md): Project contributors
