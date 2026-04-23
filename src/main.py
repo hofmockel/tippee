@@ -70,6 +70,15 @@ def run_scan(config: Config, send_alerts: bool = True) -> None:
 
     logger.info(f"Run complete: fetched {total_fetched} records, {len(new_records)} new")
 
+    if send_alerts and len(new_records) == 0 and config.send_confirmation_alert:
+        from .alerts import send_run_confirmation
+        send_run_confirmation(
+            total_fetched,
+            len(new_records),
+            config.confirmation_message,
+            config.discord_webhook_url
+        )
+
 def test_alert(config: Config) -> None:
     logger = logging.getLogger(__name__)
     logger.info("Sending test alert")
