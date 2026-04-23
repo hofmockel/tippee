@@ -12,6 +12,7 @@ from .alerts import alert_new_record
 from .models import NormalizedTradeRecord
 
 def setup_logging(log_level: str):
+    Path("logs").mkdir(parents=True, exist_ok=True)
     logging.basicConfig(
         level=getattr(logging, log_level.upper()),
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
