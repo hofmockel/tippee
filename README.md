@@ -35,7 +35,7 @@ This tool monitors congressional trade disclosures using Financial Modeling Prep
 Edit `config/watchlist.json` with your symbols:
 
 ```json
-["NVDA", "TSM", "PLTR"]
+["ARM", "GEV", "NVDA", "TSM", "TPL", "STX", "ANET", "VRT", "ETN", "EQIX", "NVT", "AVGO", "APD", "LITE", "ASML"]
 ```
 
 Symbols are normalized to uppercase, duplicates removed.
@@ -84,3 +84,9 @@ See `src/scheduler_notes.md` for details.
 
 - httpx: For HTTP requests
 - Standard library: json, hashlib, logging, etc.
+
+## Documentation
+
+- [User Manual](docs/MANUAL.md): Detailed setup and usage instructions
+- [Architectural Decisions](docs/DECISIONS.md): Key design choices and rationale
+- [Future Plans](docs/PLANS.md): Roadmap and planned features
