@@ -2,6 +2,10 @@ import os
 import json
 from pathlib import Path
 from typing import List
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 class Config:
     def __init__(self):
