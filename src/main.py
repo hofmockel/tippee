@@ -51,8 +51,12 @@ def run_scan(config: Config, send_alerts: bool = True) -> None:
             for record in all_records:
                 if is_new_record(record, seen_hashes):
                     new_records.append(record)
+                    if send_alerts and not config.send_disclosure_alerts:
+                        # Toggle off in run mode: silence the alert AND leave
+                        # the record unseen, so re-enabling delivers it later.
+                        continue
                     add_to_seen(record, seen_hashes)
-                    if send_alerts and config.send_disclosure_alerts:
+                    if send_alerts:
                         alert_new_record(record, config.discord_webhook_url)
                 else:
                     add_to_seen(record, seen_hashes)  # still add to seen for audit
@@ -99,11 +103,11 @@ def test_alert(config: Config) -> None:
 
     alert_new_record(sample, config.discord_webhook_url)
 
-def backfill(config: Config, days: int) -> None:
-    # For backfill, we assume fetching current data is sufficient, as FMP has historical
-    # But since endpoints are per symbol, and no date param, we just fetch current
+def backfill(config: Config) -> None:
+    # FMP per-symbol trade endpoints don't accept a date filter, so backfill
+    # just fetches whatever is currently available and marks it seen.
     logger = logging.getLogger(__name__)
-    logger.info(f"Starting backfill for {days} days (fetching current data)")
+    logger.info("Starting backfill (fetching current data)")
 
     run_scan(config, send_alerts=False)
 
@@ -113,8 +117,7 @@ def main():
 
     subparsers.add_parser("run", help="Perform one normal daily scan")
     subparsers.add_parser("test-alert", help="Send a sample Discord alert")
-    backfill_parser = subparsers.add_parser("backfill", help="Fetch data and populate seen_hashes without alerts")
-    backfill_parser.add_argument("--days", type=int, default=30, help="Number of days to backfill")
+    subparsers.add_parser("backfill", help="Fetch data and populate seen_hashes without alerts")
 
     args = parser.parse_args()
 
@@ -126,7 +129,7 @@ def main():
     elif args.command == "test-alert":
         test_alert(config)
     elif args.command == "backfill":
-        backfill(config, args.days)
+        backfill(config)
     else:
         parser.print_help()
 

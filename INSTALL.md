@@ -67,7 +67,7 @@ Edit `config/watchlist.json` to add your stock symbols:
 python -m src.main test-alert
 
 # Run backfill to initialize data
-python -m src.main backfill --days 30
+python -m src.main backfill
 ```
 
 ## Configuration
@@ -147,7 +147,7 @@ pip install -r requirements.txt
 ## Next Steps
 
 After installation:
-1. Run backfill: `python -m src.main backfill --days 30`
+1. Run backfill: `python -m src.main backfill`
 2. Test daily run: `python -m src.main run`
 3. Set up cron scheduling (see README.md)
 

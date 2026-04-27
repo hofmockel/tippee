@@ -17,7 +17,7 @@ This tool monitors congressional trade disclosures using Financial Modeling Prep
 2. Install dependencies: `pip install -r requirements.txt`
 3. Copy `.env.example` to `.env` and fill in your values.
 4. Add symbols to `config/watchlist.json` (e.g., `["NVDA", "PLTR"]`).
-5. Run backfill: `python -m src.main backfill --days 30`
+5. Run backfill: `python -m src.main backfill`
 6. Schedule daily runs or run manually.
 
 ## Configuration
@@ -85,7 +85,7 @@ Fetches data, checks for new disclosures, sends alerts.
 Sends a sample alert to verify Discord setup.
 
 ### Backfill
-`python -m src.main backfill --days 30`
+`python -m src.main backfill`
 
 Populates seen hashes without sending alerts. Run before first production use.
 

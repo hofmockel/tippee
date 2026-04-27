@@ -9,7 +9,7 @@ Install: `pip install -r requirements.txt`
 Run modes (CLI entrypoint is `src/main.py`):
 - `python -m src.main run` — daily scan: fetch, dedupe, send Discord alerts
 - `python -m src.main test-alert` — sends a sample Discord alert (uses a hard-coded record, not the API)
-- `python -m src.main backfill --days N` — fetches data and populates `data/seen_hashes.json` without sending alerts. Run before first production use to avoid alerting on historical disclosures. Note: FMP endpoints don't take a date param, so `--days` is informational only — backfill just calls `run_scan(send_alerts=False)`.
+- `python -m src.main backfill` — fetches data and populates `data/seen_hashes.json` without sending alerts. Run before first production use to avoid alerting on historical disclosures. Internally calls `run_scan(send_alerts=False)`. (FMP per-symbol endpoints don't take a date filter, so there's no scope flag to pass.)
 
 Tests (stdlib `unittest`, no pytest dep):
 - All: `python -m unittest discover tests`

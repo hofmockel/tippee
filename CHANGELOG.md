@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- `--days` flag from the `backfill` subcommand. The flag was accepted and logged but never affected behavior because the FMP per-symbol trade endpoints don't accept a date filter — `backfill --days 1` and `backfill --days 365` did the same thing. The command is now just `python -m src.main backfill`. README, INSTALL.md, docs/MANUAL.md, src/scheduler_notes.md, and CLAUDE.md updated accordingly.
+
+### Fixed
+- `SEND_DISCLOSURE_ALERTS=false` no longer permanently skips disclosures. Previously, disabling the toggle still wrote new records' fingerprints to `data/seen_hashes.json`, so re-enabling later would never re-deliver them. The toggle now suppresses both the Discord alert and the seen-hash write, so any disclosures that arrive while it's off will be alerted on the next run with the toggle back on. Backfill mode (`send_alerts=False`) is unchanged — it still seeds seen hashes as designed.
+
 ### Changed
 - Defaulted `SEND_CONFIRMATION_ALERT` to `false`, so runs only send alerts when there is a new disclosure to report.
 - Added documentation for toggling heartbeat/confirmation behavior with `SEND_CONFIRMATION_ALERT` and `CONFIRMATION_MESSAGE`.

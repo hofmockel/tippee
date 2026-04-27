@@ -93,7 +93,7 @@ Sends a sample alert without fetching data.
 #### Backfill
 Initialize the system with existing data:
 ```bash
-python -m src.main backfill --days 30
+python -m src.main backfill
 ```
 
 Fetches current data and marks all as seen. Run this before first production use.
@@ -124,7 +124,7 @@ To verify:
 4. Confirm the job succeeds and inspect logs if needed.
 
 #### 3) Optional first-run backfill on GitHub
-If your workflow supports input arguments, trigger a one-time backfill run (for example `--days 30`) before daily monitoring, so existing disclosures are marked as seen.
+Trigger a one-time `python -m src.main backfill` run before daily monitoring, so existing disclosures are marked as seen and don't fire alerts on the first scheduled scan.
 
 #### 4) Ongoing operation
 After setup, GitHub Actions becomes your scheduler and runtime:

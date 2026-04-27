@@ -51,7 +51,7 @@ python -m src.main run
 Before first production run, perform backfill to populate seen hashes:
 
 ```bash
-python -m src.main backfill --days 30
+python -m src.main backfill
 ```
 
 This marks all current disclosures as seen without sending alerts.
