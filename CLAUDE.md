@@ -22,7 +22,7 @@ There is no linter or formatter configured.
 
 `.env` (loaded via `python-dotenv` at import time in `src/config.py`):
 - `FMP_API_KEY`, `DISCORD_WEBHOOK_URL` — required for `run`
-- `LOG_LEVEL`, `REQUEST_TIMEOUT_SECONDS`, `MAX_RETRIES`
+- `LOG_LEVEL`, `REQUEST_TIMEOUT_SECONDS`, `MAX_RETRIES` — note that `MAX_RETRIES` counts *extra* attempts after the initial request (so `MAX_RETRIES=3` → up to 4 total attempts per FMP call). Internally exposed as `FMPClient.extra_retries`.
 - `SEND_DISCLOSURE_ALERTS` (default `true`) — gates the per-disclosure Discord alerts in `run` mode.
 - `SEND_CONFIRMATION_ALERT` (default `false`) and `CONFIRMATION_MESSAGE` — controls the "no new disclosures" end-of-run Discord ping; message supports `{total_fetched}` and `{new_records}` placeholders.
 

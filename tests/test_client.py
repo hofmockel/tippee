@@ -45,15 +45,23 @@ class TestFMPClientRetries(unittest.TestCase):
         self.assertEqual(self.client.client.get.call_count, 3)
 
     @patch("src.client.time.sleep", return_value=None)
-    def test_does_not_retry_on_http_error_message_with_403(self, _sleep_mock):
+    def test_retries_on_non_status_http_error_regardless_of_message(self, _sleep_mock):
+        """Non-status httpx.HTTPErrors (transport, decode, etc.) carry no
+        status_code; the prior `'403' in str(e)` substring match flagged them
+        as 403s and produced false positives (port 4030 in a connect error,
+        timeout '4030ms', etc.). Real 403s come through HTTPStatusError. A
+        non-status error containing '403' in its message must retry."""
         url = "https://example.com/test"
-        err = httpx.HTTPError("403 Forbidden")
-        self.client.client.get = Mock(side_effect=err)
+        err = httpx.HTTPError("Read timeout after 4030ms")  # contains '403'
+        good_response = Mock()
+        good_response.raise_for_status = Mock(return_value=None)
+        good_response.json = Mock(return_value=[])
+        self.client.client.get = Mock(side_effect=[err, err, good_response])
 
-        with self.assertRaises(httpx.HTTPError):
-            self.client._get_with_retries(url)
+        result = self.client._get_with_retries(url)
 
-        self.assertEqual(self.client.client.get.call_count, 1)
+        self.assertEqual(result, [])
+        self.assertEqual(self.client.client.get.call_count, 3)
 
 
 if __name__ == "__main__":

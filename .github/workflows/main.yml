@@ -9,6 +9,14 @@ on:
     - cron: '27 13 * * 1-5'
   workflow_dispatch:
 
+# Serialize runs (cron + manual dispatch) so they don't race on the
+# tippee-state cache: two parallel runs would both restore the same starting
+# seen_hashes and post overlapping Discord alerts. cancel-in-progress=false
+# queues the second run instead of cancelling the first.
+concurrency:
+  group: tippee-scan
+  cancel-in-progress: false
+
 jobs:
   run-scan:
     runs-on: ubuntu-latest
@@ -37,5 +45,27 @@ jobs:
           SEND_CONFIRMATION_ALERT=false
           ENVEOF
 
+      # Restore the rolling state cache (seen_hashes.json + last_run.json) from
+      # the most recent prior run. Without this, every cron run starts with an
+      # empty seen_hashes set and re-alerts on every historical disclosure.
+      - name: Restore tippee state
+        id: restore-state
+        uses: actions/cache/restore@v4
+        with:
+          path: data/
+          key: tippee-state-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            tippee-state-
+
       - name: Run daily scan
         run: python -m src.main run
+
+      # Always save (even on failure) so a partially-updated seen_hashes is
+      # preserved. The unique key guarantees the save succeeds; the next run's
+      # restore-keys prefix matches it.
+      - name: Save tippee state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/
+          key: tippee-state-${{ github.run_id }}-${{ github.run_attempt }}

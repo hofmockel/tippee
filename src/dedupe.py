@@ -37,9 +37,11 @@ def generate_fingerprint(record: NormalizedTradeRecord) -> str:
 
 def _legacy_fingerprint(record: NormalizedTradeRecord) -> str:
     """Pre-JSON fingerprint scheme. Kept so that existing seen_hashes entries
-    written by older versions still suppress alerts after upgrade."""
-    key = "|".join(record[f] for f in _FINGERPRINT_FIELDS)
-    return hashlib.sha256(key.encode()).hexdigest()
+    written by older versions still suppress alerts after upgrade. Coerces
+    None / non-string values so this fallback can never crash dedupe (the
+    JSON-based scheme above already handles them via json.dumps)."""
+    parts = ("" if record[f] is None else str(record[f]) for f in _FINGERPRINT_FIELDS)
+    return hashlib.sha256("|".join(parts).encode()).hexdigest()
 
 
 def is_new_record(record: NormalizedTradeRecord, seen_hashes: Set[str]) -> bool:

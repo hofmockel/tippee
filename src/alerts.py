@@ -33,13 +33,47 @@ def _parse_retry_after(response: httpx.Response) -> float:
     return 1.0
 
 
-def send_discord_alert(record: NormalizedTradeRecord, webhook_url: str) -> bool:
-    """POST a disclosure alert to Discord. Returns True on success.
+def _post_to_discord(webhook_url: str, payload: dict, what: str) -> bool:
+    """POST `payload` to a Discord webhook with 429 + 5xx retry.
 
-    Honours Discord's 429 Retry-After so a bursty disclosure day doesn't drop
-    alerts. All other errors return False after a single attempt — the caller
-    is expected to leave the record unmarked so the next run retries.
+    Honours Discord's 429 Retry-After and retries 5xx with exponential backoff
+    so transient outages and bursty disclosure bursts don't drop messages. 4xx
+    other than 429 fail-fast (caller error). Returns True on success, False
+    after retries are exhausted or on any non-retryable error.
+
+    `what` is a short label included in log lines for context (e.g.
+    "alert for NVDA", "run confirmation").
     """
+    for attempt in range(_MAX_DISCORD_RETRIES):
+        try:
+            response = httpx.post(webhook_url, json=payload, timeout=10)
+            if response.status_code == 429:
+                delay = _parse_retry_after(response)
+                logger.warning(
+                    "Discord rate limited (%s, attempt %s/%s); sleeping %.2fs",
+                    what, attempt + 1, _MAX_DISCORD_RETRIES, delay,
+                )
+                time.sleep(delay)
+                continue
+            if 500 <= response.status_code < 600:
+                delay = min(2 ** attempt, _MAX_RETRY_AFTER_SECONDS)
+                logger.warning(
+                    "Discord %s (%s, attempt %s/%s); backing off %.2fs",
+                    response.status_code, what, attempt + 1, _MAX_DISCORD_RETRIES, delay,
+                )
+                time.sleep(delay)
+                continue
+            response.raise_for_status()
+            return True
+        except Exception as e:
+            logger.error("Failed to send Discord %s: %s", what, e)
+            return False
+    logger.error("Failed to send Discord %s: retries exhausted", what)
+    return False
+
+
+def send_discord_alert(record: NormalizedTradeRecord, webhook_url: str) -> bool:
+    """POST a disclosure alert to Discord. Returns True on success."""
     message = f"""New congressional trade disclosure detected
 
 Symbol: {record["symbol"]}
@@ -51,30 +85,16 @@ Disclosure date: {record["disclosure_date"]}
 Amount: {record["amount_range"]}
 Owner: {record["owner"]}
 """
-    payload = {"content": message}
-    for attempt in range(_MAX_DISCORD_RETRIES):
-        try:
-            response = httpx.post(webhook_url, json=payload, timeout=10)
-            if response.status_code == 429:
-                delay = _parse_retry_after(response)
-                logger.warning(
-                    "Discord rate limited (attempt %s/%s); sleeping %.2fs",
-                    attempt + 1, _MAX_DISCORD_RETRIES, delay,
-                )
-                time.sleep(delay)
-                continue
-            response.raise_for_status()
-            logger.info(f"Discord alert sent for {record['symbol']}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to send Discord alert: {e}")
-            return False
-    logger.error("Failed to send Discord alert: rate-limited beyond retries")
+    if _post_to_discord(webhook_url, {"content": message}, f"alert for {record['symbol']}"):
+        logger.info(f"Discord alert sent for {record['symbol']}")
+        return True
     return False
+
 
 def send_console_alert(record: NormalizedTradeRecord) -> None:
     """Log the alert to console."""
     logger.info(f"New disclosure: {record['symbol']} by {record['politician_name']} ({record['source_chamber']})")
+
 
 def alert_new_record(record: NormalizedTradeRecord, discord_url: str) -> bool:
     """Send alerts for a new record. Returns True if delivery succeeded
@@ -85,13 +105,16 @@ def alert_new_record(record: NormalizedTradeRecord, discord_url: str) -> bool:
         return True
     return send_discord_alert(record, discord_url)
 
+
 def send_run_confirmation(
     total_fetched: int,
     new_records: int,
     confirmation_message_template: str,
     webhook_url: str,
 ) -> None:
-    """Send an end-of-run heartbeat. Logs the message regardless; posts to Discord if a webhook is set."""
+    """Send an end-of-run heartbeat. Logs the message regardless; posts to
+    Discord (with the same 429 + 5xx retry handling as disclosure alerts) if a
+    webhook is set."""
     try:
         message = confirmation_message_template.format(
             total_fetched=total_fetched,
@@ -103,9 +126,5 @@ def send_run_confirmation(
     logger.info(message)
     if not webhook_url:
         return
-    try:
-        response = httpx.post(webhook_url, json={"content": message}, timeout=10)
-        response.raise_for_status()
+    if _post_to_discord(webhook_url, {"content": message}, "run confirmation"):
         logger.info("Run confirmation alert sent")
-    except Exception as e:
-        logger.error(f"Failed to send run confirmation alert: {e}")
