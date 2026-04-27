@@ -14,7 +14,8 @@ class Config:
         self.log_level = os.getenv("LOG_LEVEL", "INFO")
         self.request_timeout_seconds = int(os.getenv("REQUEST_TIMEOUT_SECONDS", "20"))
         self.max_retries = int(os.getenv("MAX_RETRIES", "3"))
-        self.send_confirmation_alert = os.getenv("SEND_CONFIRMATION_ALERT", "true").lower() in ("1", "true", "yes")
+        self.send_disclosure_alerts = os.getenv("SEND_DISCLOSURE_ALERTS", "true").lower() in ("1", "true", "yes")
+        self.send_confirmation_alert = os.getenv("SEND_CONFIRMATION_ALERT", "false").lower() in ("1", "true", "yes")
         self.confirmation_message = os.getenv(
             "CONFIRMATION_MESSAGE",
             "Congressional trade watcher run complete. Fetched {total_fetched} record(s). Detected {new_records} new disclosure(s)."

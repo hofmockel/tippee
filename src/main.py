@@ -8,7 +8,7 @@ from .storage import Storage
 from .client import FMPClient
 from .normalize import normalize_records
 from .dedupe import is_new_record, add_to_seen
-from .alerts import alert_new_record
+from .alerts import alert_new_record, send_run_confirmation
 from .models import NormalizedTradeRecord
 
 def setup_logging(log_level: str):
@@ -52,7 +52,7 @@ def run_scan(config: Config, send_alerts: bool = True) -> None:
                 if is_new_record(record, seen_hashes):
                     new_records.append(record)
                     add_to_seen(record, seen_hashes)
-                    if send_alerts:
+                    if send_alerts and config.send_disclosure_alerts:
                         alert_new_record(record, config.discord_webhook_url)
                 else:
                     add_to_seen(record, seen_hashes)  # still add to seen for audit
@@ -71,7 +71,6 @@ def run_scan(config: Config, send_alerts: bool = True) -> None:
     logger.info(f"Run complete: fetched {total_fetched} records, {len(new_records)} new")
 
     if send_alerts and len(new_records) == 0 and config.send_confirmation_alert:
-        from .alerts import send_run_confirmation
         send_run_confirmation(
             total_fetched,
             len(new_records),

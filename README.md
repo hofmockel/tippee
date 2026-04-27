@@ -29,6 +29,26 @@ This tool monitors congressional trade disclosures using Financial Modeling Prep
 - `LOG_LEVEL`: Logging level (INFO, DEBUG, etc.)
 - `REQUEST_TIMEOUT_SECONDS`: HTTP timeout
 - `MAX_RETRIES`: Max retries for failed requests
+- `SEND_DISCLOSURE_ALERTS` (default `true`): post a Discord message for each newly detected disclosure. Set to `false` to silence per-disclosure alerts.
+- `SEND_CONFIRMATION_ALERT` (default `false`): post an end-of-run "ran fine, no new disclosures" message when a run finds nothing new. Set to `true` to use it as a proof-of-life ping.
+- `CONFIRMATION_MESSAGE`: template for the confirmation message; supports `{total_fetched}` and `{new_records}` placeholders.
+
+## Notifications
+
+Two fully independent things can post to Discord; each has its own toggle:
+
+1. **Per new disclosure** — fires inside `run` whenever a fetched trade fingerprint isn't in `data/seen_hashes.json`. **On by default** (`SEND_DISCLOSURE_ALERTS=true`). Suppress with `SEND_DISCLOSURE_ALERTS=false`.
+2. **End-of-run confirmation (proof-of-life)** — fires when a `run` completes with zero new disclosures. **Off by default** (`SEND_CONFIRMATION_ALERT=false`). Enable with `SEND_CONFIRMATION_ALERT=true`.
+
+Either toggle can be flipped without affecting the other. Running `backfill` instead of `run`, or leaving `DISCORD_WEBHOOK_URL` empty, suppresses both as a global override.
+
+## Verifying it works
+
+Because the per-disclosure alert is silent when there are no new disclosures, you need another signal to confirm the workflow ran:
+
+- Trigger the GitHub Action manually: `gh workflow run "Daily Congressional Trade Watch"` then `gh run watch`. A green run is your "it works" signal; the run log line `Run complete: fetched X records, Y new` confirms the pipeline reached the end.
+- Set `SEND_CONFIRMATION_ALERT=true` and you'll get a Discord message on every empty run as a proof-of-life ping.
+- For a webhook-only smoke test (no FMP call): `python -m src.main test-alert`.
 
 For GitHub Actions, do not commit your `.env` file. Instead, add repository secrets in GitHub:
 
