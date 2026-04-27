@@ -37,20 +37,27 @@ def alert_new_record(record: NormalizedTradeRecord, discord_url: str) -> None:
     if discord_url:
         send_discord_alert(record, discord_url)
 
-def send_run_confirmation(total_fetched: int, new_records: int, message_template: str, webhook_url: str) -> bool:
-    """Send an end-of-run proof-of-life ping to Discord. Used when a run completes with no new disclosures."""
-    if not webhook_url:
-        return False
+def send_run_confirmation(
+    total_fetched: int,
+    new_records: int,
+    confirmation_message_template: str,
+    webhook_url: str,
+) -> None:
+    """Send an end-of-run heartbeat. Logs the message regardless; posts to Discord if a webhook is set."""
     try:
-        message = message_template.format(total_fetched=total_fetched, new_records=new_records)
+        message = confirmation_message_template.format(
+            total_fetched=total_fetched,
+            new_records=new_records,
+        )
     except (KeyError, IndexError) as e:
         logger.error(f"Bad CONFIRMATION_MESSAGE template: {e}")
-        return False
+        return
+    logger.info(message)
+    if not webhook_url:
+        return
     try:
         response = httpx.post(webhook_url, json={"content": message}, timeout=10)
         response.raise_for_status()
-        logger.info("Run confirmation sent to Discord")
-        return True
+        logger.info("Run confirmation alert sent")
     except Exception as e:
-        logger.error(f"Failed to send run confirmation: {e}")
-        return False
+        logger.error(f"Failed to send run confirmation alert: {e}")

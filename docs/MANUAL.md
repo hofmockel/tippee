@@ -50,6 +50,8 @@ Edit the `.env` file with the following values:
 - `LOG_LEVEL`: INFO (default), DEBUG for verbose logging
 - `REQUEST_TIMEOUT_SECONDS`: 20 (default)
 - `MAX_RETRIES`: 3 (default)
+- `SEND_CONFIRMATION_ALERT`: false (default). Set to true if you want a heartbeat message when no new records are found.
+- `CONFIRMATION_MESSAGE`: Optional message template used when heartbeat messages are enabled.
 
 #### GitHub Actions Secrets
 If running on GitHub, do not store secrets in source control. Instead, add the following repository secrets in GitHub under Settings > Secrets and variables > Actions:
@@ -96,6 +98,43 @@ python -m src.main backfill --days 30
 
 Fetches current data and marks all as seen. Run this before first production use.
 
+
+### Run Entirely on GitHub (No Local Machine Required)
+
+You can operate the watcher 100% on GitHub using **GitHub Actions**. This is useful if you want scheduled runs without keeping your own server or laptop on.
+
+#### 1) Add repository secrets
+In your repository, go to **Settings > Secrets and variables > Actions** and add:
+
+- `FMP_API_KEY`
+- `DISCORD_WEBHOOK_URL`
+
+These are injected at runtime so credentials never need to be committed.
+
+#### 2) Enable and verify the workflow
+This repository includes a GitHub Actions workflow that can:
+
+- run on a schedule (daily)
+- run manually from the Actions tab
+
+To verify:
+1. Open the **Actions** tab in GitHub.
+2. Select the trade watcher workflow.
+3. Click **Run workflow** for a manual test run.
+4. Confirm the job succeeds and inspect logs if needed.
+
+#### 3) Optional first-run backfill on GitHub
+If your workflow supports input arguments, trigger a one-time backfill run (for example `--days 30`) before daily monitoring, so existing disclosures are marked as seen.
+
+#### 4) Ongoing operation
+After setup, GitHub Actions becomes your scheduler and runtime:
+
+- No cron job required
+- No always-on VM/server required
+- Logs are available in each workflow run
+
+If alerts stop, check recent workflow run logs first, then validate your two Actions secrets.
+
 ### Scheduling
 Set up daily runs with cron:
 
@@ -103,8 +142,9 @@ Set up daily runs with cron:
 # Edit crontab
 crontab -e
 
-# Add line for 9 AM daily run
-0 9 * * * cd /path/to/tippee && python -m src.main run
+# Add lines for weekday 9:27 AM Eastern (3 minutes before market open)
+CRON_TZ=America/New_York
+27 9 * * 1-5 cd /path/to/tippee && python -m src.main run
 ```
 
 Replace `/path/to/tippee` with your actual path.

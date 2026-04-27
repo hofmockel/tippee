@@ -70,3 +70,11 @@ Unit tests for core functions (normalize, dedupe). Chosen for:
 - Validate critical logic
 - Easy to run
 - No integration tests (external API)
+
+## Alert Noise Policy
+
+Default behavior is now to send alerts only when there is a new disclosure to report.
+
+- `SEND_CONFIRMATION_ALERT=false` by default to avoid noisy no-op notifications.
+- Operators can opt-in to heartbeat messages by setting `SEND_CONFIRMATION_ALERT=true`.
+- `CONFIRMATION_MESSAGE` controls the heartbeat content if enabled.

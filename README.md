@@ -29,6 +29,7 @@ This tool monitors congressional trade disclosures using Financial Modeling Prep
 - `LOG_LEVEL`: Logging level (INFO, DEBUG, etc.)
 - `REQUEST_TIMEOUT_SECONDS`: HTTP timeout
 - `MAX_RETRIES`: Max retries for failed requests
+
 - `SEND_DISCLOSURE_ALERTS` (default `true`): post a Discord message for each newly detected disclosure. Set to `false` to silence per-disclosure alerts.
 - `SEND_CONFIRMATION_ALERT` (default `false`): post an end-of-run "ran fine, no new disclosures" message when a run finds nothing new. Set to `true` to use it as a proof-of-life ping.
 - `CONFIRMATION_MESSAGE`: template for the confirmation message; supports `{total_fetched}` and `{new_records}` placeholders.
@@ -47,7 +48,6 @@ Either toggle can be flipped without affecting the other. Running `backfill` ins
 Because the per-disclosure alert is silent when there are no new disclosures, you need another signal to confirm the workflow ran:
 
 - Trigger the GitHub Action manually: `gh workflow run "Daily Congressional Trade Watch"` then `gh run watch`. A green run is your "it works" signal; the run log line `Run complete: fetched X records, Y new` confirms the pipeline reached the end.
-- Set `SEND_CONFIRMATION_ALERT=true` and you'll get a Discord message on every empty run as a proof-of-life ping.
 - For a webhook-only smoke test (no FMP call): `python -m src.main test-alert`.
 
 For GitHub Actions, do not commit your `.env` file. Instead, add repository secrets in GitHub:
@@ -91,13 +91,25 @@ Populates seen hashes without sending alerts. Run before first production use.
 
 ## Scheduling
 
-Use cron for daily runs. Example (9 AM daily):
+Use cron for weekday runs 3 minutes before U.S. market open (9:27 AM Eastern):
 
 ```
-0 9 * * * cd /path/to/congress-trade-watcher && python -m src.main run
+CRON_TZ=America/New_York
+27 9 * * 1-5 cd /path/to/congress-trade-watcher && python -m src.main run
 ```
 
 See `src/scheduler_notes.md` for details.
+
+### GitHub Actions Scheduled Runs
+
+If you run this project on GitHub Actions, the included workflow uses:
+
+- `on.schedule: '27 13 * * 1-5'` (UTC weekdays)
+- `workflow_dispatch` for manual runs
+
+This offset from minute `00` is intentional to reduce the chance of missed schedule starts during high-load top-of-hour windows.
+
+Note: GitHub Actions cron is UTC-only, so this maps to 9:27 AM ET during daylight saving time and 8:27 AM ET during standard time.
 
 ## Data Storage
 
