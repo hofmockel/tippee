@@ -1,6 +1,6 @@
 import time
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import httpx
 
 logger = logging.getLogger(__name__)
@@ -18,13 +18,22 @@ class FMPClient:
         self.max_retries = max_retries
         self.client = httpx.Client(timeout=self.timeout)
 
+    def __enter__(self) -> "FMPClient":
+        return self
+
+    def __exit__(self, *exc) -> None:
+        self.close()
+
+    def close(self) -> None:
+        self.client.close()
+
     def _should_retry_status(self, status_code: int) -> bool:
         return status_code in self.RETRYABLE_STATUSES
 
-    def _get_with_retries(self, url: str) -> List[Dict[str, Any]]:
+    def _get_with_retries(self, url: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         for attempt in range(self.max_retries + 1):
             try:
-                response = self.client.get(url)
+                response = self.client.get(url, params=params)
                 response.raise_for_status()
                 return response.json()
             except httpx.HTTPStatusError as e:
@@ -72,13 +81,17 @@ class FMPClient:
         return []
 
     def get_senate_trades(self, symbol: str) -> List[Dict[str, Any]]:
-        url = f"{self.BASE_URL}/senate-trades?symbol={symbol}&apikey={self.api_key}"
         logger.info(f"Fetching senate trades for {symbol}")
         time.sleep(1)  # conservative rate limiting
-        return self._get_with_retries(url)
+        return self._get_with_retries(
+            f"{self.BASE_URL}/senate-trades",
+            params={"symbol": symbol, "apikey": self.api_key},
+        )
 
     def get_house_trades(self, symbol: str) -> List[Dict[str, Any]]:
-        url = f"{self.BASE_URL}/house-trades?symbol={symbol}&apikey={self.api_key}"
         logger.info(f"Fetching house trades for {symbol}")
         time.sleep(1)  # conservative rate limiting
-        return self._get_with_retries(url)
+        return self._get_with_retries(
+            f"{self.BASE_URL}/house-trades",
+            params={"symbol": symbol, "apikey": self.api_key},
+        )

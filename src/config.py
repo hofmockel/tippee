@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 # Load .env file
 load_dotenv()
 
+# Resolve watchlist path relative to the project root (one level above src/),
+# so the CLI works no matter what CWD it was launched from.
+_WATCHLIST_PATH = Path(__file__).resolve().parent.parent / "config" / "watchlist.json"
+
 class Config:
     def __init__(self):
         self.fmp_api_key = os.getenv("FMP_API_KEY", "")
@@ -22,11 +26,10 @@ class Config:
         )
 
     def load_watchlist(self) -> List[str]:
-        watchlist_path = Path("config/watchlist.json")
-        if not watchlist_path.exists():
+        if not _WATCHLIST_PATH.exists():
             return []
-        with open(watchlist_path, "r") as f:
+        with open(_WATCHLIST_PATH, "r") as f:
             data = json.load(f)
-        # Normalize: uppercase, remove duplicates, ignore empty
+        # Normalize: uppercase, strip, drop empties, dedupe while preserving order.
         symbols = [s.upper().strip() for s in data if s and isinstance(s, str)]
-        return list(set(symbols))
+        return list(dict.fromkeys(symbols))

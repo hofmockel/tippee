@@ -14,10 +14,16 @@ class Storage:
     @staticmethod
     def save_json(file_path: Path, data: Dict[str, Any]) -> None:
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile(mode="w", dir=file_path.parent, delete=False, suffix=".tmp") as f:
-            json.dump(data, f, indent=2)
-            temp_path = Path(f.name)
-        temp_path.replace(file_path)
+        temp_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(mode="w", dir=file_path.parent, delete=False, suffix=".tmp") as f:
+                temp_path = Path(f.name)
+                json.dump(data, f, indent=2)
+            temp_path.replace(file_path)
+            temp_path = None  # rename succeeded; nothing to clean up
+        finally:
+            if temp_path is not None:
+                temp_path.unlink(missing_ok=True)
 
     @staticmethod
     def load_seen_hashes() -> Set[str]:

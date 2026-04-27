@@ -1,7 +1,7 @@
 import argparse
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from .config import Config
 from .storage import Storage
@@ -31,21 +31,27 @@ def run_scan(config: Config, send_alerts: bool = True) -> None:
         logger.warning("No symbols in watchlist")
         return
 
-    client = FMPClient(config.fmp_api_key, config.request_timeout_seconds, config.max_retries)
     seen_hashes = Storage.load_seen_hashes()
     new_records = []
-
     total_fetched = 0
 
-    for symbol in watchlist:
-        try:
-            senate_data = client.get_senate_trades(symbol)
-            house_data = client.get_house_trades(symbol)
+    with FMPClient(config.fmp_api_key, config.request_timeout_seconds, config.max_retries) as client:
+        for symbol in watchlist:
+            senate_data = []
+            house_data = []
+            try:
+                senate_data = client.get_senate_trades(symbol)
+            except Exception as e:
+                logger.error(f"Failed to fetch senate trades for {symbol}: {e}")
+            try:
+                house_data = client.get_house_trades(symbol)
+            except Exception as e:
+                logger.error(f"Failed to fetch house trades for {symbol}: {e}")
 
-            senate_normalized = normalize_records(senate_data, "senate")
-            house_normalized = normalize_records(house_data, "house")
-
-            all_records = senate_normalized + house_normalized
+            all_records = (
+                normalize_records(senate_data, "senate")
+                + normalize_records(house_data, "house")
+            )
             total_fetched += len(all_records)
 
             for record in all_records:
@@ -55,19 +61,21 @@ def run_scan(config: Config, send_alerts: bool = True) -> None:
                         # Toggle off in run mode: silence the alert AND leave
                         # the record unseen, so re-enabling delivers it later.
                         continue
-                    add_to_seen(record, seen_hashes)
-                    if send_alerts:
-                        alert_new_record(record, config.discord_webhook_url)
+                    if not send_alerts:
+                        # Backfill: mark seen without alerting.
+                        add_to_seen(record, seen_hashes)
+                        continue
+                    # run mode with alerts on: only mark seen if delivery
+                    # succeeded, so a Discord failure leaves the record for
+                    # the next run to retry.
+                    if alert_new_record(record, config.discord_webhook_url):
+                        add_to_seen(record, seen_hashes)
                 else:
-                    add_to_seen(record, seen_hashes)  # still add to seen for audit
-
-        except Exception as e:
-            logger.error(f"Failed to process symbol {symbol}: {e}")
-            continue
+                    add_to_seen(record, seen_hashes)  # idempotent; keeps already-seen records seen
 
     Storage.save_seen_hashes(seen_hashes)
     Storage.save_last_run({
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "fetched_records": total_fetched,
         "new_records": len(new_records)
     })

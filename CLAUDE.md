@@ -44,9 +44,9 @@ watchlist.json → FMPClient (per-symbol Senate + House fetch)
 
 Key invariants and gotchas:
 
-- **Fingerprint fields** (`src/dedupe.py::generate_fingerprint`) are: `source_chamber | symbol | politician_name | transaction_type | transaction_date | disclosure_date | amount_range | owner`. Changing the set or the order of these fields invalidates every existing entry in `data/seen_hashes.json` and will re-alert on all historical disclosures. The normalized values for `transaction_type` and `owner` are also part of the fingerprint, so changing the canonical strings in `src/normalize.py` has the same effect.
+- **Fingerprint fields** (`src/dedupe.py::_FINGERPRINT_FIELDS`) are: `source_chamber, symbol, politician_name, transaction_type, transaction_date, disclosure_date, amount_range, owner`. Changing this tuple invalidates every entry in `data/seen_hashes.json`. Encoding is JSON canonical (`json.dumps(..., separators=(",",":"))`) hashed with SHA-256. A legacy `|`-joined fingerprint is also computed in `is_new_record` so seen-hash entries written by older versions still suppress alerts; new entries are written under the JSON scheme only. The normalized values for `transaction_type` and `owner` are part of the fingerprint, so changing the canonical strings in `src/normalize.py` invalidates entries the same way.
 
-- **Every fetched record is added to `seen_hashes`**, including ones that were already seen — `run_scan` calls `add_to_seen` in both branches "for audit" purposes. Only records that were *new* before that add are alerted on.
+- **`add_to_seen` is gated on alert delivery in run mode.** [src/main.py](src/main.py) only marks a new record seen after `alert_new_record` returns `True` (Discord post succeeded, or there's no webhook to deliver to). A failed Discord post leaves the record unseen so the next run retries — duplicate alert beats missed alert. Backfill mode (`send_alerts=False`) marks seen unconditionally, which is its purpose. Already-seen records get a no-op `add_to_seen` to keep them seen.
 
 - **State files live under `data/`** (`seen_hashes.json`, `last_run.json`) and are written atomically via temp file + rename in `Storage.save_json`. `data/` is created on demand. `logs/app.log` is created by `setup_logging` before any logging happens.
 
